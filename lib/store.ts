@@ -105,7 +105,7 @@ function getDefaultFilters(data: ComparisonData | null): FilterState {
     geographies: firstGeography ? [firstGeography] : [],
     segments: firstSegments,
     segmentType: firstSegmentType,
-    yearRange: [baseYear, Math.min(baseYear + 4, forecastYear)],
+    yearRange: [baseYear + 1, Math.min(baseYear + 5, forecastYear)],
     dataType: 'value',
     viewMode: 'segment-mode',
     businessType: defaultBusinessType,

@@ -34,7 +34,7 @@ export function YearRangeSlider() {
         updateFilters({ yearRange: [start_year, base_year - 1] })
         break
       case 'forecast':
-        updateFilters({ yearRange: [base_year, forecast_year] })
+        updateFilters({ yearRange: [base_year + 1, forecast_year] })
         break
       case 'all':
         updateFilters({ yearRange: [start_year, forecast_year] })
