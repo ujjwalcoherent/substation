@@ -1,75 +1,108 @@
 {
+  "_geography_hierarchy": {
+    "Global": [
+      "North America",
+      "Europe",
+      "Asia Pacific",
+      "Latin America",
+      "Middle East & Africa"
+    ],
+    "North America": [
+      "U.S.",
+      "Canada"
+    ],
+    "Europe": [
+      "U.K.",
+      "Germany",
+      "France",
+      "Italy",
+      "Spain",
+      "Russia",
+      "Rest of Europe"
+    ],
+    "Asia Pacific": [
+      "China",
+      "India",
+      "Japan",
+      "South Korea",
+      "ASEAN",
+      "Australia",
+      "Rest of Asia Pacific"
+    ],
+    "Latin America": [
+      "Brazil",
+      "Mexico",
+      "Argentina",
+      "Rest of Latin America"
+    ],
+    "Middle East & Africa": [
+      "GCC",
+      "South Africa",
+      "Rest of Middle East & Africa"
+    ]
+  },
   "Global": {
     "By Offering": {
       "Hardware": {
+        "Intelligent Electronic Devices (IEDs)": {},
         "Sensors and Transducers": {},
         "Data Acquisition Units and RTUs": {},
-        "Power Quality and Disturbance Monitoring Devices": {},
-        "Intelligent Electronic Devices (IEDs)": {},
-        "Communication Gateways and Edge Computing Devices": {}
+        "Transformer Monitoring Systems": {},
+        "Partial Discharge Monitoring Systems": {},
+        "Communication Gateways and Edge Devices": {},
+        "Others (Power Quality Monitoring Devices, Metering and Measurement Devices, Time Synchronization Devices, etc.)": {}
       },
       "Software": {
         "Monitoring and Visualization Platforms": {},
         "Analytics and Fault Diagnosis Software": {},
         "Asset Management and CMMS Integrations": {},
-        "Others (Cybersecurity Software for Substations; etc.)": {}
+        "Others (Cybersecurity Software for Substations, etc.)": {}
       },
       "Services": {
         "Managed Services": {},
         "Professional Services": {}
       }
     },
-    "By Functionality": {},
-    "By Deployment Model": {},
-    "By Communication and Integration Layer": {},
-    "By Substation Type": {},
-    "By Voltage Range": {},
+    "By Functionality": {
+      "Condition and Asset Health Monitoring": {},
+      "Event, Alarm, and Disturbance Monitoring": {},
+      "Diagnostics and Root Cause Analysis": {},
+      "Predictive Maintenance and Asset Performance Optimization": {},
+      "Power Quality and Grid Stability Monitoring": {}
+    },
+    "By Deployment Model": {
+      "On-Premises Deployment": {},
+      "Cloud-Based Deployment": {},
+      "Hybrid Deployment": {}
+    },
+    "By Communication and Integration Layer": {
+      "Wired Communication": {},
+      "Wireless Communication": {}
+    },
+    "By Substation Type": {
+      "Transmission Substations": {},
+      "Distribution Substations": {}
+    },
+    "By Voltage Range": {
+      "110 to 220 kV": {},
+      "220 to 400 kV": {},
+      "400 to 765 kV": {},
+      "Above 765 kV": {}
+    },
     "By End User": {
+      "Electric Utilities": {},
+      "Independent Power Producers and Grid Asset Owners": {},
       "Industrial Substation": {
         "Oil and Gas": {},
-        "Mining; Metals": {},
+        "Mining, Metals": {},
         "Manufacturing": {}
       },
       "Infrastructure": {
         "Railways": {},
         "Metros": {},
         "Airports": {}
-      }
-    },
-    "By Region": {
-      "North America": {
-        "U.S.": {},
-        "Canada": {}
       },
-      "Europe": {
-        "U.K.": {},
-        "Germany": {},
-        "Italy": {},
-        "France": {},
-        "Spain": {},
-        "Russia": {},
-        "Rest of Europe": {}
-      },
-      "Asia Pacific": {
-        "China": {},
-        "India": {},
-        "Japan": {},
-        "South Korea": {},
-        "ASEAN": {},
-        "Australia": {},
-        "Rest of Asia Pacific": {}
-      },
-      "Middle East & Africa": {
-        "GCC": {},
-        "Israel": {},
-        "Rest of Middle East": {}
-      },
-      "Latin America": {
-        "Brazil": {},
-        "Argentina": {},
-        "Mexico": {},
-        "Rest of Latin America": {}
-      }
+      "Others (Data Centers, Defense, etc.)": {}
     }
   }
 }

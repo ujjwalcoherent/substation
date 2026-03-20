@@ -75,25 +75,9 @@ export function MultiLineChart({ title, height = 400 }: MultiLineChartProps) {
     // Determine series based on view mode and selections
     let series: string[] = []
 
-    // FIRST: Check for regional segment types - these need special handling regardless of view mode
     const advancedSegments = filters.advancedSegments || []
-    const isRegionalSegmentType = filters.segmentType === 'By Region' ||
-                                  filters.segmentType === 'By State' ||
-                                  filters.segmentType === 'By Country'
 
-    if (isRegionalSegmentType && advancedSegments.length > 0) {
-      // For regional segment types, the selected "segments" are actually geography names
-      // Use them directly as the series
-      const selectedRegions = advancedSegments
-        .filter((seg: any) => seg.type === filters.segmentType)
-        .map((seg: any) => seg.segment)
-
-      if (selectedRegions.length > 0) {
-        series = selectedRegions
-      } else {
-        series = getUniqueGeographies(filtered)
-      }
-    } else if (filters.viewMode === 'segment-mode') {
+    if (filters.viewMode === 'segment-mode') {
       // For segment mode with Level 2 aggregation, extract keys from prepared data
       series = extractSeriesFromPreparedData()
     } else if (filters.viewMode === 'geography-mode') {

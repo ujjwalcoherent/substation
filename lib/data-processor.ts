@@ -64,13 +64,6 @@ export function filterData(
   // Hide aggregation level complexity from users
   let effectiveAggregationLevel = filters.aggregationLevel
 
-  // Special handling for regional segment types: "By Region", "By State", "By Country"
-  // These segment types have geographies as segments, so the hierarchy is different
-  // Don't force aggregation level 2 for these - let all records through
-  const isRegionalSegmentType = filters.segmentType === 'By Region' ||
-                                 filters.segmentType === 'By State' ||
-                                 filters.segmentType === 'By Country'
-
   // If aggregationLevel is explicitly set to null or undefined, use automatic detection
   if (effectiveAggregationLevel === null || effectiveAggregationLevel === undefined) {
     const selectedSegments = filters.segments || []
@@ -86,20 +79,10 @@ export function filterData(
     if (hasSegmentsForCurrentType) {
       // User has explicitly selected segments - DON'T use automatic level detection
       // Set to null so we show the actual leaf records (sub-segments) not aggregated parent
-      // For example: If user selects "Parenteral", show Intravenous, Intramuscular, Subcutaneous
-      // NOT the aggregated "Parenteral" record
       effectiveAggregationLevel = null
       console.log('🔍 filterData: User selected segments, setting effectiveAggregationLevel to null to show sub-segments')
-    } else if (isRegionalSegmentType) {
-      // SPECIAL CASE: For regional segment types, DON'T default to level 2
-      // Regional segment types have geography names as segments (e.g., "U.S." under "By Region")
-      // These records typically have aggregation_level = 3 (not 2), so forcing level 2 would filter them out
-      effectiveAggregationLevel = null
-      console.log('🔍 filterData: Regional segment type', filters.segmentType, ', allowing all aggregation levels')
     } else {
       // NO SEGMENTS SELECTED FOR THIS SEGMENT TYPE: Default to showing Level 1 segments only (aggregation_level 2)
-      // This ensures we don't show sub-segments when no specific segments are chosen for this type
-      // For example: Show Oral, Parenteral, Topical, etc. but NOT Intravenous, Intramuscular, etc.
       effectiveAggregationLevel = 2
       console.log('🔍 filterData: No segments selected for segment type', filters.segmentType, ', defaulting to aggregation_level 2 (Level 1 segments)')
     }
@@ -125,59 +108,14 @@ export function filterData(
   }
   
   const filtered = data.filter((record) => {
-    // 1. Geography filter - enhanced to handle parent-child relationships
-    // In geography mode, when a parent geography is selected (e.g., "North America"),
-    // also include records from child geographies (e.g., "U.S.", "Canada")
-
-    // SPECIAL CASE: For regional segment types ("By Region", "By State", "By Country"),
-    // skip the geography filter entirely because:
-    // - "By Region" data exists under regional geographies (North America, Europe, etc.), NOT under Global
-    // - The segments themselves ARE the geographical breakdown (e.g., U.S. under North America > By Region)
-    // - Filtering by geography would incorrectly exclude all records when "Global" is selected
+    // 1. Geography filter - each geography (Global, regions, countries) has its own data
+    // No parent-child inclusion needed - each geography's data is independent
     let geoMatch = filters.geographies.length === 0 ||
-      filters.geographies.includes(record.geography) ||
-      isRegionalSegmentType // Skip geography filter for regional segment types
+      filters.geographies.includes(record.geography)
 
     // Also match if the record's parent geography is in the selected list
-    // This allows selecting "North America" to include U.S., Canada records
     if (!geoMatch && record.parent_geography && filters.geographies.includes(record.parent_geography)) {
       geoMatch = true
-    }
-
-    // In ALL view modes, if no records match the selected geographies for this segment type,
-    // we should include Global data as a fallback (handled later in aggregation)
-    // This is critical for segment-mode when data only exists under "Global" but user selects regional geographies
-    if (!geoMatch) {
-      // Check if any selected geography is a parent of this record's geography
-      // Regions contain countries - map them accordingly
-      const regionToCountries: Record<string, string[]> = {
-        'North America': ['U.S.', 'Canada'],
-        'Europe': ['U.K.', 'Germany', 'Italy', 'France', 'Spain', 'Russia', 'Rest of Europe'],
-        'Asia Pacific': ['China', 'India', 'Japan', 'South Korea', 'ASEAN', 'Australia', 'Rest of Asia Pacific'],
-        'Latin America': ['Brazil', 'Argentina', 'Mexico', 'Rest of Latin America'],
-        'Middle East': ['GCC', 'Israel', 'Rest of Middle East'],
-        'Africa': ['North Africa', 'Central Africa', 'South Africa']
-      }
-
-      // If a region is selected and this record is a country in that region, include it
-      for (const selectedGeo of filters.geographies) {
-        if (regionToCountries[selectedGeo]?.includes(record.geography)) {
-          geoMatch = true
-          break
-        }
-      }
-
-      // IMPORTANT: Include Global data when regional geographies are selected
-      // This is because segment types like "By Form" only exist under Global
-      // When user selects "North America" + "By Form", we need Global's By Form data
-      if (!geoMatch && record.geography === 'Global') {
-        // Check if any selected geography is a regional geography (not Global itself)
-        const regionalGeographies = ['North America', 'Europe', 'Asia Pacific', 'Latin America', 'Middle East', 'Africa', 'Middle East & Africa', 'ASEAN', 'SAARC Region', 'CIS Region']
-        const hasRegionalSelection = filters.geographies.some(g => regionalGeographies.includes(g))
-        if (hasRegionalSelection && !filters.geographies.includes('Global')) {
-          geoMatch = true
-        }
-      }
     }
 
     if (!geoMatch) {
@@ -270,60 +208,25 @@ export function filterData(
         } else if (hasSegmentFilter) {
           // User selected OTHER segments - exclude aggregated records, show leaf sub-segments only
           return false
-        } else if (!isRegionalSegmentType) {
-          // Non-regional segment types without filter: exclude aggregated to prevent double-counting
+        } else {
+          // No filter: exclude aggregated to prevent double-counting
           return false
         }
-        // Regional segment type without filter: allow aggregated records through
       } else {
         // This is a leaf record
-        // If segments are selected and this leaf's parent segment is selected,
-        // include the leaf record (the segment filter will check hierarchy matching)
-        // (The segment filter already checks hierarchy, so it will match correctly)
-
-        // However, if the user explicitly selected Level 1 segments (aggregated),
+        // If the user explicitly selected Level 1 segments (aggregated),
         // we should NOT include leaf records that belong to other segments
-        // This prevents mixing aggregated Level 1 segments with their unrelated leaf children
         if (selectedLevel1Segments.length > 0) {
-          // SPECIAL CASE: For regional segment types ("By Region", "By State", "By Country"),
-          // the selected "segment" could be a geography name (North America) or a country name (U.S.)
-          if (isRegionalSegmentType) {
-            const regionalGeographies = ['North America', 'Europe', 'Asia Pacific', 'Latin America', 'Middle East', 'Africa', 'Middle East & Africa', 'ASEAN', 'SAARC Region', 'CIS Region', 'Global']
+          // Check if this leaf record belongs to one of the selected Level 1 segments
+          const hierarchy = record.segment_hierarchy
+          const belongsToSelectedSegment = selectedLevel1Segments.some(selectedSeg =>
+            hierarchy.level_1 === selectedSeg ||
+            hierarchy.level_2 === selectedSeg ||
+            record.segment === selectedSeg
+          )
 
-            // Check if selected segments are geography names or country/segment names
-            const selectedAreGeographies = selectedLevel1Segments.some(seg => regionalGeographies.includes(seg))
-            const selectedAreSegments = selectedLevel1Segments.some(seg => !regionalGeographies.includes(seg))
-
-            if (selectedAreGeographies && !selectedAreSegments) {
-              // All selections are geography names - match by geography
-              const belongsToSelectedGeography = selectedLevel1Segments.some(selectedSeg =>
-                record.geography === selectedSeg
-              )
-              if (!belongsToSelectedGeography) {
-                return false
-              }
-            } else {
-              // Selections include country/segment names - match by segment
-              const belongsToSelectedSegment = selectedLevel1Segments.some(selectedSeg =>
-                record.segment === selectedSeg
-              )
-              if (!belongsToSelectedSegment) {
-                return false
-              }
-            }
-          } else {
-            // Check if this leaf record belongs to one of the selected Level 1 segments
-            const hierarchy = record.segment_hierarchy
-            const belongsToSelectedSegment = selectedLevel1Segments.some(selectedSeg =>
-              hierarchy.level_1 === selectedSeg ||
-              hierarchy.level_2 === selectedSeg ||
-              record.segment === selectedSeg
-            )
-
-            if (!belongsToSelectedSegment) {
-              // This leaf doesn't belong to any selected segment - exclude it
-              return false
-            }
+          if (!belongsToSelectedSegment) {
+            return false
           }
         }
       }
@@ -349,13 +252,6 @@ export function filterData(
     // 5. Segment filter - handle both advancedSegments and regular segments
     let segmentMatch = true
 
-    // Special handling for "By Region" segment type
-    // For "By Region", the selected "segment" is actually a geography name (like "North America")
-    // and we need to match records where record.geography === selected segment
-    const isRegionSegmentType = filters.segmentType === 'By Region' ||
-                                filters.segmentType === 'By State' ||
-                                filters.segmentType === 'By Country'
-
     // Check if we're using advancedSegments (multi-type selection)
     if (filters.advancedSegments && filters.advancedSegments.length > 0) {
       // Special case: Level 1 uses '__ALL_SEGMENTS__' marker
@@ -375,18 +271,7 @@ export function filterData(
             return true
           }
 
-          // Special handling for "By Region" - match geography name as parent
-          // When user selects "North America" for "By Region", include all records where geography="North America"
-          if (isRegionSegmentType && seg.segment === record.geography) {
-            console.log('🔍 SEGMENT FILTER: By Region geography match:', {
-              recordGeography: record.geography,
-              recordSegment: record.segment,
-              selectedSegment: seg.segment
-            })
-            return true
-          }
-
-          // ALWAYS check hierarchy for parent segment matching
+          // Check hierarchy for parent segment matching
           // This handles cases like: User selects "Parenteral" but records have segment="Intravenous"
           // We need to include records where "Parenteral" is in their hierarchy
           const hierarchy = record.segment_hierarchy
@@ -430,18 +315,7 @@ export function filterData(
             return true
           }
 
-          // Special handling for "By Region" - match geography name as parent
-          // When user selects "North America" for "By Region", include all records where geography="North America"
-          if (isRegionSegmentType && selectedSegment === record.geography) {
-            console.log('🔍 SEGMENT FILTER: By Region geography match:', {
-              recordGeography: record.geography,
-              recordSegment: record.segment,
-              selectedSegment
-            })
-            return true
-          }
-
-          // ALWAYS check hierarchy for parent segment matching
+          // Check hierarchy for parent segment matching
           // This handles cases like: User selects "Parenteral" but records have segment="Intravenous"
           const hierarchy = record.segment_hierarchy
           // Check if the selected segment is at any level in this record's hierarchy
@@ -1760,45 +1634,13 @@ export function prepareIntelligentMultiLevelData(
   // In this case, we want to show each selected segment as a separate series
   const hasExplicitLevel1Selection = selectedLevel1Segments.length > 0
 
-  // Check if this is a regional segment type (By Region, By State, By Country)
-  const isRegionalSegmentType = filters.segmentType === 'By Region' ||
-                                filters.segmentType === 'By State' ||
-                                filters.segmentType === 'By Country'
-
   // Group records by segment (or geography) and find the best representation
   const segmentGroups = new Map<string, DataRecord[]>()
 
   records.forEach(record => {
     let key: string
 
-    // SPECIAL CASE: For regional segment types, the selected "segments" could be:
-    // 1. Geography names (e.g., North America, Asia Pacific) - Level 1 selections
-    // 2. Country/state names (e.g., U.S., Canada, Germany) - Level 2+ selections
-    if (isRegionalSegmentType && hasExplicitLevel1Selection) {
-      const regionalGeographies = ['North America', 'Europe', 'Asia Pacific', 'Latin America', 'Middle East', 'Africa', 'Middle East & Africa', 'ASEAN', 'SAARC Region', 'CIS Region', 'Global']
-
-      // Check if selected segments are geography names or country/segment names
-      const selectedAreGeographies = selectedLevel1Segments.some((seg: string) => regionalGeographies.includes(seg))
-      const selectedAreSegments = selectedLevel1Segments.some((seg: string) => !regionalGeographies.includes(seg))
-
-      if (selectedAreGeographies && !selectedAreSegments) {
-        // All selections are geography names (North America, Europe, etc.)
-        // Group by geography
-        if (selectedLevel1Segments.includes(record.geography)) {
-          key = record.geography
-        } else {
-          return // Skip - geography doesn't match
-        }
-      } else {
-        // Selections include country/segment names (U.S., Canada, Germany, etc.)
-        // Group by segment name
-        if (selectedLevel1Segments.includes(record.segment)) {
-          key = record.segment
-        } else {
-          return // Skip - segment doesn't match
-        }
-      }
-    } else if (viewMode === 'segment-mode') {
+    if (viewMode === 'segment-mode') {
       // When Level 1 segments are explicitly selected, group by the selected segment
       // This ensures each selected Level 1 segment appears as a separate series
       if (hasExplicitLevel1Selection) {
@@ -1915,49 +1757,22 @@ export function prepareIntelligentMultiLevelData(
       return dataPoint
     }
 
-    // Check if this is a regional segment type
-    const isRegionalSegmentType = filters.segmentType === 'By Region' ||
-                                  filters.segmentType === 'By State' ||
-                                  filters.segmentType === 'By Country'
-
-    // Standard logic for non-Global mapping cases
+    // Standard logic for building data points
     segmentGroups.forEach((groupRecords, key) => {
-      // Strategy: Use the most appropriate record for this segment
-      // PRIORITY ORDER:
-      // 1. If user explicitly selected Level 1 segments, prefer the aggregated record that matches
-      // 2. If leaf record exists (and no explicit Level 1 selection), use it (most accurate)
-      // 3. If only aggregated records exist, use the one that matches selected segments
-      // 4. If multiple aggregated records, prefer the one at the level of selected segments
-
-      // SPECIAL CASE: For regional segment types, the "key" is a geography name (North America, Asia Pacific, etc.)
-      // and we should sum ALL records for that geography regardless of view mode
-      const isRegionalWithSelection = isRegionalSegmentType && hasExplicitLevel1Selection
-
       // Check if this key is an explicitly selected Level 1 segment
-      // For regional segment types, skip this check because the key is a geography, not a segment
-      const isExplicitlySelectedLevel1 = !isRegionalWithSelection && hasExplicitLevel1Selection && selectedLevel1Segments.includes(key)
+      const isExplicitlySelectedLevel1 = hasExplicitLevel1Selection && selectedLevel1Segments.includes(key)
 
       if (isExplicitlySelectedLevel1) {
         // User explicitly selected this Level 1 segment
-        // Find the aggregated record that matches this segment name
         const aggregatedRecord = groupRecords.find(r => r.is_aggregated && r.segment === key)
 
         if (aggregatedRecord) {
-          // Use the aggregated record's value
           dataPoint[key] = aggregatedRecord.time_series[year] || 0
         } else {
-          // No aggregated record found - sum all child records
           dataPoint[key] = groupRecords.reduce((sum, r) =>
             sum + (r.time_series[year] || 0), 0
           )
         }
-      } else if (isRegionalWithSelection) {
-        // SPECIAL CASE: For regional segment types with regions selected,
-        // we need to SUM ALL records for this geography (e.g., sum all countries in North America)
-        // because each record represents a country, and we want the total for the region
-        dataPoint[key] = groupRecords.reduce((sum, r) =>
-          sum + (r.time_series[year] || 0), 0
-        )
       } else {
         // Standard logic for non-Level 1 selections
         const leafRecord = groupRecords.find(r => !r.is_aggregated)

@@ -19,7 +19,7 @@ function OpportunityGeographyMultiSelect() {
   const [searchTerm, setSearchTerm] = useState('')
   const dropdownRef = useRef<HTMLDivElement>(null)
   
-  const shouldHide = opportunityFilters.segmentType === 'By Region' || opportunityFilters.segmentType === 'By State'
+  const shouldHide = false
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -606,123 +606,7 @@ export function D3BubbleChartIndependent({ title, height = 500 }: BubbleChartPro
       } else {
         // CASE 2: No segments selected - aggregate appropriately
 
-        // SPECIAL CASE: For "By Region" segment type, aggregate by parent geography (region)
-        // This shows main regions (North America, Europe, etc.) instead of individual countries
-        const isByRegionSegmentType = activeFilters.segmentType === 'By Region'
-        const isByStateSegmentType = activeFilters.segmentType === 'By State'
-        const isByCountrySegmentType = activeFilters.segmentType === 'By Country'
-
-        if (isByRegionSegmentType) {
-          const selectedGeos = activeFilters.geographies || []
-          const mainRegions = ['North America', 'Europe', 'Asia Pacific', 'Latin America', 'Middle East', 'Africa', 'Middle East & Africa', 'ASEAN', 'SAARC Region', 'CIS Region']
-
-          // Check if a specific region is selected (not Global, not multiple regions)
-          const isSingleRegionSelected = selectedGeos.length === 1 &&
-                                         !selectedGeos.includes('Global') &&
-                                         mainRegions.includes(selectedGeos[0])
-
-          if (isSingleRegionSelected) {
-            // Show countries/sub-regions within the selected region
-            console.log('🌍 By Region with specific region selected:', selectedGeos[0], '- showing sub-regions')
-            // Keep the records as they are (countries within the region)
-            // Don't aggregate - let the individual countries show as separate bubbles
-          } else {
-            // Show main continental regions (Global view or multiple regions selected)
-            // Group records by their parent geography (region)
-            const regionGroups = new Map<string, typeof filteredRecords>()
-
-            filteredRecords.forEach(record => {
-              // Use the record's geography as the grouping key (this is the parent region)
-              const region = record.geography
-              if (region && mainRegions.includes(region)) {
-                if (!regionGroups.has(region)) {
-                  regionGroups.set(region, [])
-                }
-                regionGroups.get(region)!.push(record)
-              }
-            })
-
-            console.log('🌍 Aggregating By Region to main regions:', [...regionGroups.keys()])
-
-            // Create aggregated records for each main region
-            const aggregatedRecords: typeof filteredRecords = []
-
-            regionGroups.forEach((childRecords, regionName) => {
-              // Aggregate time series from all children (countries) in this region
-              const aggregatedTimeSeries: { [year: string]: number } = {}
-              childRecords.forEach(record => {
-                Object.entries(record.time_series).forEach(([year, value]) => {
-                  aggregatedTimeSeries[year] = (aggregatedTimeSeries[year] || 0) + (value as number)
-                })
-              })
-
-              // Create aggregated record for the region
-              const aggregatedRecord = {
-                ...childRecords[0],
-                geography: regionName,
-                segment: regionName, // Use region name as segment for display
-                time_series: aggregatedTimeSeries,
-                is_aggregated: true
-              }
-              aggregatedRecords.push(aggregatedRecord as any)
-
-              console.log('🌍 Aggregated region:', {
-                regionName,
-                countriesFound: childRecords.length,
-                countries: childRecords.map(r => r.segment)
-              })
-            })
-
-            filteredRecords = aggregatedRecords
-            console.log('🌍 After regional aggregation:', {
-              recordsAfterAggregation: filteredRecords.length,
-              regions: [...new Set(filteredRecords.map(r => r.segment))]
-            })
-          }
-        } else if (isByStateSegmentType || isByCountrySegmentType) {
-          // SPECIAL CASE: For "By State" and "By Country" segment types
-          // These have segments that represent states/countries (e.g., "Northeast U.S.", "Midwest U.S.")
-          // Don't aggregate - show each state/country segment as an individual bubble
-
-          console.log('🗺️ Processing By State/Country segment type:', {
-            segmentType: activeFilters.segmentType,
-            recordsCount: filteredRecords.length,
-            uniqueSegments: [...new Set(filteredRecords.map(r => r.segment))],
-            uniqueGeographies: [...new Set(filteredRecords.map(r => r.geography))]
-          })
-
-          // For By State, each segment IS the state (Northeast U.S., Midwest U.S., etc.)
-          // No aggregation needed - just use the segments directly
-          // The records should already be at the correct level from filterData
-
-          // If no records found, it might be because filterData filtered them out
-          // In that case, let's try to find records with matching segment_type
-          if (filteredRecords.length === 0) {
-            const dataset = activeFilters.dataType === 'value'
-              ? (data.data.value?.geography_segment_matrix || [])
-              : (data.data.volume?.geography_segment_matrix || [])
-
-            // Try to find records with the By State segment type
-            const stateRecords = dataset.filter((r: any) =>
-              r.segment_type === activeFilters.segmentType
-            )
-
-            console.log('🗺️ By State fallback search:', {
-              foundRecords: stateRecords.length,
-              segments: [...new Set(stateRecords.map((r: any) => r.segment))]
-            })
-
-            if (stateRecords.length > 0) {
-              filteredRecords = stateRecords
-            }
-          }
-
-          console.log('🗺️ After By State/Country processing:', {
-            recordsCount: filteredRecords.length,
-            segments: [...new Set(filteredRecords.map(r => r.segment))]
-          })
-        } else {
-          // Standard aggregation by Geography AND Level 1 (parent segments) for non-regional segment types
+        {
           // This ensures each geography gets its own set of bubbles
           const geoLevel1Groups = new Map<string, typeof filteredRecords>()
 

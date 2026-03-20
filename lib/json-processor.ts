@@ -1166,61 +1166,23 @@ export async function processJsonDataAsync(
     const baseYear = Math.floor((startYear + forecastYear) / 2)
     console.log(`Years: ${startYear} to ${forecastYear}, base: ${baseYear}`)
     
-    // Extract geographies from segmentation data (first level keys)
-    // This is truly dynamic - works with any structure (global, country, region, etc.)
-    console.log('Extracting geographies from segmentation data...')
+    // Extract geographies from value data (top-level keys = geographies)
+    // Segmentation data may only have "Global", so prefer value data for full geography list
+    console.log('Extracting geographies...')
     let geographies: string[] = []
 
-    if (structureData && typeof structureData === 'object') {
-      geographies = Object.keys(structureData).filter(key => {
-        // Filter out any non-string keys or invalid entries
-        const value = structureData[key]
+    // Prefer value data for geography extraction (has all regions + countries as top-level keys)
+    const geoSource = valueData || structureData
+    if (geoSource && typeof geoSource === 'object') {
+      geographies = Object.keys(geoSource).filter(key => {
+        if (key.startsWith('_')) return false // Skip metadata keys like _geography_hierarchy
+        const value = (geoSource as Record<string, unknown>)[key]
         return value && typeof value === 'object' && !Array.isArray(value)
       })
     }
 
     if (geographies.length === 0) {
-      // Fallback: try to extract from value data if segmentation doesn't have geographies
-      console.warn('No geographies found in segmentation data, trying value data...')
-      if (valueData && typeof valueData === 'object') {
-        geographies = Object.keys(valueData).filter(key => {
-          const value = valueData[key]
-          return value && typeof value === 'object' && !Array.isArray(value)
-        })
-      }
-    }
-
-    if (geographies.length === 0) {
       throw new Error('No geographies found in any data source. Please check your JSON structure.')
-    }
-
-    // Extract regions from "By Region" segment type as additional geographies
-    // This allows filtering by region (Middle East, Latin America, etc.) in the geography dropdown
-    const regionGeographies: string[] = []
-    for (const topGeo of geographies) {
-      const geoData = structureData[topGeo]
-      if (geoData && typeof geoData === 'object') {
-        // Look for "By Region" segment type
-        const byRegionData = geoData['By Region']
-        if (byRegionData && typeof byRegionData === 'object') {
-          // Extract region names (first level keys under "By Region")
-          const regions = Object.keys(byRegionData).filter(key => {
-            const value = byRegionData[key]
-            return value && typeof value === 'object' && !Array.isArray(value)
-          })
-          regions.forEach(region => {
-            if (!regionGeographies.includes(region) && !geographies.includes(region)) {
-              regionGeographies.push(region)
-            }
-          })
-        }
-      }
-    }
-
-    // Add regions to geographies list
-    if (regionGeographies.length > 0) {
-      console.log(`Found ${regionGeographies.length} regions from "By Region":`, regionGeographies)
-      geographies = [...geographies, ...regionGeographies]
     }
 
     console.log(`Found ${geographies.length} total geographies:`, geographies)
@@ -1229,7 +1191,8 @@ export async function processJsonDataAsync(
     // Extract segment types from segmentation data (second level keys)
     console.log('Extracting segment types from segmentation data...')
     const segmentTypes = new Set<string>()
-    Object.values(structureData).forEach(geography => {
+    Object.entries(structureData).forEach(([key, geography]) => {
+      if (key.startsWith('_')) return // Skip metadata keys like _geography_hierarchy
       if (geography && typeof geography === 'object') {
         Object.keys(geography).forEach(segType => {
           segmentTypes.add(segType)
@@ -1241,16 +1204,48 @@ export async function processJsonDataAsync(
     }
     console.log(`Found ${segmentTypes.size} segment types:`, Array.from(segmentTypes))
     
-    // Build geography dimension - truly dynamic, no assumptions about structure
-    // All geographies go into all_geographies, regardless of whether they're global, regions, or countries
-    const geographyDimension: GeographyDimension = {
-      global: geographies.length === 1 ? geographies : [], // If only one geography, treat as global
-      regions: [], // Will be populated dynamically if needed
-      countries: {}, // Will be populated dynamically if needed
-      all_geographies: geographies // All geographies from the data
+    // Build geography dimension using _geography_hierarchy from segmentation data
+    const rawHierarchy = structureData?.['_geography_hierarchy']
+    const geoHierarchy: Record<string, string[]> = {}
+    if (rawHierarchy && typeof rawHierarchy === 'object') {
+      for (const [key, val] of Object.entries(rawHierarchy)) {
+        if (Array.isArray(val)) {
+          geoHierarchy[key] = val as string[]
+        }
+      }
     }
-    
-    console.log(`Geography dimension built with ${geographies.length} geographies:`, geographies)
+    const globalGeos: string[] = geoHierarchy['Global'] ? ['Global'] : (geographies.length === 1 ? geographies : [])
+    const regions: string[] = geoHierarchy['Global'] || []
+    const countries: Record<string, string[]> = {}
+    for (const region of regions) {
+      if (geoHierarchy[region]) {
+        countries[region] = geoHierarchy[region]
+      }
+    }
+
+    // Build ordered all_geographies: Global, then regions with their countries
+    const orderedGeographies: string[] = [...globalGeos]
+    for (const region of regions) {
+      orderedGeographies.push(region)
+      if (countries[region]) {
+        orderedGeographies.push(...countries[region])
+      }
+    }
+    // Add any remaining geographies not in the hierarchy
+    for (const geo of geographies) {
+      if (!orderedGeographies.includes(geo)) {
+        orderedGeographies.push(geo)
+      }
+    }
+
+    const geographyDimension: GeographyDimension = {
+      global: globalGeos,
+      regions,
+      countries,
+      all_geographies: orderedGeographies
+    }
+
+    console.log(`Geography dimension built with ${orderedGeographies.length} geographies:`, orderedGeographies)
     
     // Process each segment type asynchronously
     const segments: Record<string, SegmentDimension> = {}

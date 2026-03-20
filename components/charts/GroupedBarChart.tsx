@@ -222,24 +222,7 @@ export function GroupedBarChart({ title, height = 400 }: GroupedBarChartProps) {
       }
     } else {
       // Non-stacked: Get series from prepared data to ensure we use aggregated keys
-      // FIRST: Check for regional segment types - these need special handling regardless of view mode
-      const isRegionalSegmentType = filters.segmentType === 'By Region' ||
-                                    filters.segmentType === 'By State' ||
-                                    filters.segmentType === 'By Country'
-
-      if (isRegionalSegmentType && advancedSegments.length > 0) {
-        // For regional segment types, the selected "segments" are actually geography names
-        // Use them directly as the series
-        const selectedRegions = advancedSegments
-          .filter((seg: any) => seg.type === filters.segmentType)
-          .map((seg: any) => seg.segment)
-
-        if (selectedRegions.length > 0) {
-          series = selectedRegions
-        } else {
-          series = getUniqueGeographies(filtered)
-        }
-      } else if (effectiveAggregationLevel === 1) {
+      if (effectiveAggregationLevel === 1) {
         // Level 1 shows total aggregation - group by geography
         series = getUniqueGeographies(filtered)
       } else if (filters.viewMode === 'segment-mode') {

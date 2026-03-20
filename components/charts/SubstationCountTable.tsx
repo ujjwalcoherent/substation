@@ -12,38 +12,34 @@ interface SubstationEntry {
 }
 
 const substationData: SubstationEntry[] = [
-  { region: 'North America', country: 'North America', count: 85200, isRegionHeader: true, indent: 0 },
-  { region: 'North America', country: 'U.S.', count: 72400, isRegionHeader: false, indent: 1 },
-  { region: 'North America', country: 'Canada', count: 12800, isRegionHeader: false, indent: 1 },
-  { region: 'Europe', country: 'Europe', count: 152900, isRegionHeader: true, indent: 0 },
-  { region: 'Europe', country: 'U.K.', count: 18200, isRegionHeader: false, indent: 1 },
-  { region: 'Europe', country: 'Germany', count: 22300, isRegionHeader: false, indent: 1 },
-  { region: 'Europe', country: 'Italy', count: 15600, isRegionHeader: false, indent: 1 },
-  { region: 'Europe', country: 'France', count: 19400, isRegionHeader: false, indent: 1 },
-  { region: 'Europe', country: 'Spain', count: 14100, isRegionHeader: false, indent: 1 },
-  { region: 'Europe', country: 'Russia', count: 21500, isRegionHeader: false, indent: 1 },
-  { region: 'Europe', country: 'Poland', count: 11200, isRegionHeader: false, indent: 1 },
-  { region: 'Europe', country: 'Netherlands', count: 8600, isRegionHeader: false, indent: 1 },
-  { region: 'Europe', country: 'Sweden', count: 7400, isRegionHeader: false, indent: 1 },
-  { region: 'Europe', country: 'Norway', count: 6200, isRegionHeader: false, indent: 1 },
-  { region: 'Europe', country: 'Rest of Europe', count: 8400, isRegionHeader: false, indent: 1 },
-  { region: 'Asia Pacific', country: 'Asia Pacific', count: 198700, isRegionHeader: true, indent: 0 },
-  { region: 'Asia Pacific', country: 'China', count: 89500, isRegionHeader: false, indent: 1 },
-  { region: 'Asia Pacific', country: 'India', count: 42300, isRegionHeader: false, indent: 1 },
-  { region: 'Asia Pacific', country: 'Japan', count: 28100, isRegionHeader: false, indent: 1 },
-  { region: 'Asia Pacific', country: 'South Korea', count: 14200, isRegionHeader: false, indent: 1 },
-  { region: 'Asia Pacific', country: 'ASEAN', count: 11800, isRegionHeader: false, indent: 1 },
-  { region: 'Asia Pacific', country: 'Australia', count: 6400, isRegionHeader: false, indent: 1 },
-  { region: 'Asia Pacific', country: 'Rest of Asia Pacific', count: 6400, isRegionHeader: false, indent: 1 },
-  { region: 'Middle East & Africa', country: 'Middle East & Africa', count: 38600, isRegionHeader: true, indent: 0 },
-  { region: 'Middle East & Africa', country: 'GCC', count: 16200, isRegionHeader: false, indent: 1 },
-  { region: 'Middle East & Africa', country: 'Israel', count: 4800, isRegionHeader: false, indent: 1 },
-  { region: 'Middle East & Africa', country: 'Rest of Middle East', count: 17600, isRegionHeader: false, indent: 1 },
-  { region: 'Latin America', country: 'Latin America', count: 52400, isRegionHeader: true, indent: 0 },
-  { region: 'Latin America', country: 'Brazil', count: 21600, isRegionHeader: false, indent: 1 },
-  { region: 'Latin America', country: 'Argentina', count: 8900, isRegionHeader: false, indent: 1 },
-  { region: 'Latin America', country: 'Mexico', count: 12500, isRegionHeader: false, indent: 1 },
-  { region: 'Latin America', country: 'Rest of Latin America', count: 9400, isRegionHeader: false, indent: 1 },
+  { region: 'North America', country: 'North America', count: 88200, isRegionHeader: true, indent: 0 },
+  { region: 'North America', country: 'United States', count: 75000, isRegionHeader: false, indent: 1 },
+  { region: 'North America', country: 'Canada', count: 13200, isRegionHeader: false, indent: 1 },
+  { region: 'Europe', country: 'Europe', count: 3215503, isRegionHeader: true, indent: 0 },
+  { region: 'Europe', country: 'Germany', count: 501800, isRegionHeader: false, indent: 1 },
+  { region: 'Europe', country: 'United Kingdom', count: 340400, isRegionHeader: false, indent: 1 },
+  { region: 'Europe', country: 'France', count: 740700, isRegionHeader: false, indent: 1 },
+  { region: 'Europe', country: 'Italy', count: 450600, isRegionHeader: false, indent: 1 },
+  { region: 'Europe', country: 'Spain', count: 220500, isRegionHeader: false, indent: 1 },
+  { region: 'Europe', country: 'Russia', count: 474000, isRegionHeader: false, indent: 1 },
+  { region: 'Europe', country: 'Rest of Europe', count: 487503, isRegionHeader: false, indent: 1 },
+  { region: 'Asia Pacific', country: 'Asia Pacific', count: 781150, isRegionHeader: true, indent: 0 },
+  { region: 'Asia Pacific', country: 'China', count: 195000, isRegionHeader: false, indent: 1 },
+  { region: 'Asia Pacific', country: 'Japan', count: 172200, isRegionHeader: false, indent: 1 },
+  { region: 'Asia Pacific', country: 'India', count: 58600, isRegionHeader: false, indent: 1 },
+  { region: 'Asia Pacific', country: 'ASEAN', count: 98500, isRegionHeader: false, indent: 1 },
+  { region: 'Asia Pacific', country: 'South Korea', count: 55800, isRegionHeader: false, indent: 1 },
+  { region: 'Asia Pacific', country: 'Australia', count: 22900, isRegionHeader: false, indent: 1 },
+  { region: 'Asia Pacific', country: 'Rest of Asia Pacific', count: 178150, isRegionHeader: false, indent: 1 },
+  { region: 'Latin America', country: 'Latin America', count: 214900, isRegionHeader: true, indent: 0 },
+  { region: 'Latin America', country: 'Brazil', count: 114500, isRegionHeader: false, indent: 1 },
+  { region: 'Latin America', country: 'Mexico', count: 25900, isRegionHeader: false, indent: 1 },
+  { region: 'Latin America', country: 'Argentina', count: 12400, isRegionHeader: false, indent: 1 },
+  { region: 'Latin America', country: 'Rest of Latin America', count: 62100, isRegionHeader: false, indent: 1 },
+  { region: 'Middle East & Africa', country: 'Middle East & Africa', count: 185035, isRegionHeader: true, indent: 0 },
+  { region: 'Middle East & Africa', country: 'GCC', count: 87200, isRegionHeader: false, indent: 1 },
+  { region: 'Middle East & Africa', country: 'South Africa', count: 4300, isRegionHeader: false, indent: 1 },
+  { region: 'Middle East & Africa', country: 'Rest of ME&A', count: 93535, isRegionHeader: false, indent: 1 },
 ]
 
 const regionColors: Record<string, string> = {
@@ -76,7 +72,7 @@ export default function SubstationCountTable({ title }: Props) {
   const chartData = chartView === 'region' ? regionData : countryData
 
   const formatNumber = (num: number) => {
-    return num.toLocaleString()
+    return '~' + num.toLocaleString()
   }
 
   return (
@@ -92,7 +88,7 @@ export default function SubstationCountTable({ title }: Props) {
             <thead>
               <tr className="bg-[#184E77] text-white">
                 <th className="px-4 py-3 text-left text-sm font-semibold w-1/2">Region / Country</th>
-                <th className="px-4 py-3 text-right text-sm font-semibold w-1/2">Number of Substations per Country, 2025</th>
+                <th className="px-4 py-3 text-right text-sm font-semibold w-1/2">Number of Substations (Units)</th>
               </tr>
             </thead>
             <tbody>
@@ -156,22 +152,22 @@ export default function SubstationCountTable({ title }: Props) {
           <BarChart
             data={chartData}
             layout="vertical"
-            margin={{ top: 5, right: 30, left: chartView === 'country' ? 120 : 140, bottom: 5 }}
+            margin={{ top: 5, right: 30, left: chartView === 'country' ? 140 : 140, bottom: 5 }}
           >
             <CartesianGrid strokeDasharray="3 3" horizontal={false} />
             <XAxis
               type="number"
-              tickFormatter={(value) => `${(value / 1000).toFixed(0)}K`}
+              tickFormatter={(value) => value >= 1000000 ? `${(value / 1000000).toFixed(1)}M` : `${(value / 1000).toFixed(0)}K`}
               tick={{ fontSize: 11, fill: '#4B5563' }}
             />
             <YAxis
               type="category"
               dataKey="name"
               tick={{ fontSize: 11, fill: '#374151' }}
-              width={chartView === 'country' ? 110 : 130}
+              width={chartView === 'country' ? 130 : 130}
             />
             <Tooltip
-              formatter={(value: number) => [formatNumber(value), 'Substations']}
+              formatter={(value: number) => ['~' + value.toLocaleString(), 'Substations']}
               labelStyle={{ fontWeight: 'bold', color: '#1F2937' }}
               contentStyle={{ borderRadius: '8px', border: '1px solid #E5E7EB' }}
             />
