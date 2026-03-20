@@ -2,13 +2,12 @@
 
 import { useDashboardStore } from '@/lib/store'
 import { CHART_GROUPS, type ChartGroupId } from '@/lib/chart-groups'
-import { BarChart3, Target, Users, Building2, type LucideIcon } from 'lucide-react'
+import { BarChart3, Target, Building2, type LucideIcon } from 'lucide-react'
 
 // Icon mapping for each chart group
 const iconMap: Record<ChartGroupId, LucideIcon> = {
   'market-analysis': BarChart3,
   'coherent-opportunity': Target,
-  'customer-intelligence': Users,
   'substation-count': Building2,
 }
 

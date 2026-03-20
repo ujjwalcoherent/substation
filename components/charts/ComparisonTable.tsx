@@ -26,8 +26,8 @@ export function ComparisonTable({ title, height = 600 }: ComparisonTableProps) {
     // Filter data
     const filtered = filterData(dataset, filters)
 
-    // Get the selected year (use base year or middle of range)
-    const year = filters.yearRange[0] + Math.floor((filters.yearRange[1] - filters.yearRange[0]) / 2)
+    // Use the first year of the range for display
+    const year = filters.yearRange[0]
     const startYear = filters.yearRange[0]
     const endYear = filters.yearRange[1]
 
@@ -54,8 +54,19 @@ export function ComparisonTable({ title, height = 600 }: ComparisonTableProps) {
       growth: record.time_series[startYear] > 0 
         ? (((record.time_series[endYear] || 0) - (record.time_series[startYear] || 0)) / record.time_series[startYear] * 100)
         : 0,
-      cagr: parseCAGR(record.cagr),
-      marketShare: record.market_share || 0,
+      cagr: (() => {
+        const v2026 = record.time_series[2026] || 0
+        const v2033 = record.time_series[2033] || 0
+        if (v2026 > 0 && v2033 > 0) {
+          return (Math.pow(v2033 / v2026, 1 / 7) - 1) * 100
+        }
+        return 0
+      })(),
+      marketShare: (() => {
+        const totalForYear = filtered.reduce((sum, r) => sum + (r.time_series[year] || 0), 0)
+        const currentVal = record.time_series[year] || 0
+        return totalForYear > 0 ? (currentVal / totalForYear) * 100 : 0
+      })(),
       sparkline: Object.entries(record.time_series)
         .filter(([y]) => parseInt(y) >= startYear && parseInt(y) <= endYear)
         .sort(([a], [b]) => parseInt(a) - parseInt(b))
@@ -148,7 +159,7 @@ export function ComparisonTable({ title, height = 600 }: ComparisonTableProps) {
     )
   }
 
-  const year = filters.yearRange[0] + Math.floor((filters.yearRange[1] - filters.yearRange[0]) / 2)
+  const year = filters.yearRange[0]
   const valueUnit = filters.dataType === 'value' 
     ? `${data.metadata.currency} ${data.metadata.value_unit}`
     : data.metadata.volume_unit

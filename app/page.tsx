@@ -30,7 +30,7 @@ export default function DashboardPage() {
   const { setData, setLoading, setError, data, isLoading, error, filters, selectedChartGroup, dashboardName } = useDashboardStore()
   const [mounted, setMounted] = useState(false)
   const [hasCheckedStore, setHasCheckedStore] = useState(false)
-  const [activeTab, setActiveTab] = useState<'bar' | 'line' | 'heatmap' | 'table' | 'waterfall' | 'bubble' | 'competitive-intelligence' | 'customer-intelligence' | 'substation-count'>('bar')
+  const [activeTab, setActiveTab] = useState<'bar' | 'line' | 'heatmap' | 'table' | 'waterfall' | 'bubble' | 'competitive-intelligence' | 'substation-count'>('bar')
   const [showInsights, setShowInsights] = useState(false)
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
   const [viewMode, setViewMode] = useState<'tabs' | 'vertical'>('tabs')
@@ -53,7 +53,6 @@ export default function DashboardPage() {
     'waterfall': 'waterfall',
     'bubble': 'bubble',
     'competitive-intelligence': 'competitive-intelligence',
-    'customer-intelligence': 'customer-intelligence',
     'substation-count': 'substation-count'
   }
 
@@ -373,18 +372,6 @@ export default function DashboardPage() {
                             🫧 Bubble Chart
                           </button>
                         )}
-                        {isChartVisible('customer-intelligence') && (
-                          <button
-                            onClick={() => setActiveTab('customer-intelligence')}
-                            className={`px-6 py-3 text-sm font-medium border-b-2 transition-colors ${
-                              activeTab === 'customer-intelligence'
-                                ? 'border-blue-500 text-blue-600'
-                                : 'border-transparent text-black hover:text-black hover:border-gray-300'
-                            }`}
-                          >
-                            👥 Customer Intelligence
-                          </button>
-                        )}
                         {isChartVisible('substation-count') && (
                           <button
                             onClick={() => setActiveTab('substation-count')}
@@ -487,14 +474,6 @@ export default function DashboardPage() {
                       </div>
                     )}
                     
-                    {activeTab === 'customer-intelligence' && (
-                      <div id="customer-intelligence-chart">
-                        <CustomerIntelligenceDatabase
-                          title="Customer Intelligence"
-                        />
-                      </div>
-                    )}
-
                     {activeTab === 'substation-count' && (
                       <div id="substation-count-chart">
                         <SubstationCountTable
@@ -574,15 +553,6 @@ export default function DashboardPage() {
                       </div>
                     )}
                     
-                    {isChartVisible('customer-intelligence') && (
-                      <div className="border-b pb-8">
-                        <h3 className="text-lg font-semibold text-black mb-4">👥 Customer Intelligence</h3>
-                        <CustomerIntelligenceDatabase
-                          title="Customer Intelligence"
-                        />
-                      </div>
-                    )}
-
                     {isChartVisible('substation-count') && (
                       <div className="border-b pb-8">
                         <h3 className="text-lg font-semibold text-black mb-4">🏗️ No. of Substation</h3>
